@@ -89,7 +89,6 @@ def get_data_from_json(raw_json_data):
             f.write(str(json_data))
             f.close
 
-
         for properties in search_results:
             property_info = properties.get('hdpData', {}).get('homeInfo')
             city = property_info.get('city')
