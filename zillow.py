@@ -45,7 +45,7 @@ def save_to_file(response):
 def write_data_to_csv(data, count):
     # saving scraped data to csv.
 
-    with open("properties-aggregated_5.csv", 'ab') as csvfile:
+    with open("properties-aggregated.csv", 'ab') as csvfile:
         fieldnames = ['title', 'city', 'state', 'postal_code', 'zestimate', 'rentZestimate', 'price', 'yearBuilt', 'area', 'daysOnZillow', 'facts and features', 'real estate provider', 'url', 'P2R']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if count==0:
@@ -113,7 +113,7 @@ def get_data_from_json(raw_json_data):
             elif price not in [None, ''] and rentZestimate not in [None, '']:
                 price_to_rent = str(int(price)/(12*int(rentZestimate)))
             else:
-                price_to_rent = 0
+                price_to_rent = "0"
 
             data = {'city': city,
                     'state': state,
@@ -129,11 +129,12 @@ def get_data_from_json(raw_json_data):
                     'url': property_url,
                     'title': title,
                     'P2R': price_to_rent}
-            properties_list.append(data)
+
+            if data['P2R'] != "0":
+                properties_list.append(data)
 
         return properties_list
 
-    #except ValueError:
     except Exception as e:
         #print("Invalid json")
         print(e)
@@ -199,21 +200,19 @@ if __name__ == "__main__":
     # Reading arguments
 
     argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    #argparser.add_argument('zipcode', help='')
     argparser.add_argument('city', help='')
     argparser.add_argument('state', help='')
-    sortorder_help = """
-    available sort orders are :
-    newest : Latest property details,
-    cheapest : Properties with cheapest price
-    """
-
-    argparser.add_argument('sort', nargs='?', help=sortorder_help, default='Homes For You')
+    argparser.add_argument('sort', nargs='?', help='', default='Homes For You')
     args = argparser.parse_args()
-    #zipcode = args.zipcode
     city = args.city
     state = args.state
     sort = args.sort
+
+    # uncomment to debug
+    # city = "fairfax"
+    # state = "VA"
+    # sort = ""
+
 
 
     print ("Fetching data for %s" % (city))
