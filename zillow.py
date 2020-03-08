@@ -4,6 +4,7 @@ import unicodecsv as csv
 import argparse
 import json
 import io
+from zipcodes import get_all_zipcodes_of_city
 
 
 def clean(text):
@@ -41,13 +42,14 @@ def save_to_file(response):
 		fp.write(response.text)
 
 
-def write_data_to_csv(data):
+def write_data_to_csv(data, count):
     # saving scraped data to csv.
 
-    with open("properties-aggregated_2.csv", 'ab') as csvfile:
-        fieldnames = ['title', 'address', 'city', 'state', 'postal_code', 'zestimate', 'rentZestimate', 'price', 'facts and features', 'real estate provider', 'url', 'P2R']
+    with open("properties-aggregated_5.csv", 'ab') as csvfile:
+        fieldnames = ['title', 'city', 'state', 'postal_code', 'zestimate', 'rentZestimate', 'price', 'yearBuilt', 'area', 'daysOnZillow', 'facts and features', 'real estate provider', 'url', 'P2R']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
+        if count==0:
+            writer.writeheader()
         for row in data:
             writer.writerow(row)
 
@@ -78,14 +80,17 @@ def get_data_from_json(raw_json_data):
     cleaned_data = clean(raw_json_data).replace('<!--', "").replace("-->", "")
     properties_list = []
 
+
     try:
         json_data = json.loads(cleaned_data)
         search_results = json_data.get('searchResults').get('listResults', [])
-		
-        print(search_results)
+
+        with open('sample_json.txt', 'w') as f:
+            f.write(str(json_data))
+            f.close
+
 
         for properties in search_results:
-            address = properties.get('addressWithZip')
             property_info = properties.get('hdpData', {}).get('homeInfo')
             city = property_info.get('city')
             state = property_info.get('state')
@@ -93,13 +98,17 @@ def get_data_from_json(raw_json_data):
             zestimate = property_info.get('zestimate')
             rentZestimate = property_info.get('rentZestimate')
             price = remove_dollar_and_comma(properties.get('price')) if properties.get('price') is not None else '0'
+            yearBuilt = property_info.get('yearBuilt')
+            daysOnZillow = property_info.get('daysOnZillow')
             bedrooms = properties.get('beds')
             bathrooms = properties.get('baths')
             area = properties.get('area')
-            info = f'{bedrooms} bds, {bathrooms} ba ,{area} sqft'
+            info = f'{bedrooms} beds, {bathrooms} baths'
             broker = properties.get('brokerName')
             property_url = properties.get('detailUrl')
             title = properties.get('statusText')
+            # TODO days_on_market = properties.get('variableData').get('text')
+
             if zestimate not in [None, ''] and rentZestimate not in [None, '']:
                 price_to_rent =str(int(zestimate)/(12*int(rentZestimate)))
             elif price not in [None, ''] and rentZestimate not in [None, '']:
@@ -107,13 +116,15 @@ def get_data_from_json(raw_json_data):
             else:
                 price_to_rent = 0
 
-            data = {'address': address,
-                    'city': city,
+            data = {'city': city,
                     'state': state,
                     'postal_code': postal_code,
                     'zestimate': zestimate,
                     'rentZestimate' : rentZestimate,
                     'price': price,
+                    'yearBuilt' : yearBuilt,
+                    'area': area,
+                    'daysOnZillow' : daysOnZillow,
                     'facts and features': info,
                     'real estate provider': broker,
                     'url': property_url,
@@ -189,7 +200,9 @@ if __name__ == "__main__":
     # Reading arguments
 
     argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    argparser.add_argument('zipcode', help='')
+    #argparser.add_argument('zipcode', help='')
+    argparser.add_argument('city', help='')
+    argparser.add_argument('state', help='')
     sortorder_help = """
     available sort orders are :
     newest : Latest property details,
@@ -198,10 +211,20 @@ if __name__ == "__main__":
 
     argparser.add_argument('sort', nargs='?', help=sortorder_help, default='Homes For You')
     args = argparser.parse_args()
-    zipcode = args.zipcode
+    #zipcode = args.zipcode
+    city = args.city
+    state = args.state
     sort = args.sort
-    print ("Fetching data for %s" % (zipcode))
-    scraped_data = parse(zipcode, sort)
-    if scraped_data:
-        print ("Writing data to output file")
-        write_data_to_csv(scraped_data)
+
+
+    print ("Fetching data for %s" % (city))
+
+    zipcode_list = get_all_zipcodes_of_city(city, state)
+
+    count = 0
+    for zipcode in zipcode_list:
+        scraped_data = parse(zipcode, sort)
+        if scraped_data:
+            print ("Writing data to output file")
+            write_data_to_csv(scraped_data, count)
+        count+=1
