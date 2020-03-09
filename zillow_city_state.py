@@ -4,7 +4,7 @@ import unicodecsv as csv
 import argparse
 import json
 import io
-from zipcodes_util import *
+from zipcodes import get_all_zipcodes_of_city
 
 
 def clean(text):
@@ -217,7 +217,7 @@ if __name__ == "__main__":
 
     print ("Fetching data for %s" % (city))
 
-    zipcode_list = get_zip_of_rich_by_city_state(city, state)
+    zipcode_list = get_all_zipcodes_of_city(city, state)
 
     count = 0
     for zipcode in zipcode_list:
