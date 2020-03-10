@@ -35,7 +35,7 @@ def get_zipcode_of_richest_near_city(lat, lng):
         radius=radius,
         sort_by=Zipcode.median_household_income,
         ascending=False,
-        returns=1,
+        returns=15
     )
     for i in res:
         zip.append(i.zipcode)

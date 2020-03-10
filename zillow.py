@@ -85,6 +85,8 @@ def remove_dollar_and_comma(price):
     price = price.replace('+', '')
     return price
 
+
+
 def get_hoa(property_url):
     is_hoa = True
     print("now retrieving:", property_url)
@@ -93,21 +95,31 @@ def get_hoa(property_url):
     # raw_detail_json_data = detail_parser.xpath('//script[@id="hdpApolloPreloadedData"]//text()')
     raw_detail_json_data = detail_parser.xpath('//span[@class="Text-aiai24-0 IJYzV"]//text()')
 
-    hoa = 0
-    try:
-        for i in range(0, len(raw_detail_json_data)):
-            item = str(raw_detail_json_data[i])
-            if item == "HOA fee: ":
-                hoa_dollar = str(raw_detail_json_data[i + 1])
-                hoa = remove_dollar_and_comma(hoa_dollar)
-                break
+    lst = raw_detail_json_data
+    it = iter(lst)
+    res_dct = dict(zip(it, it))
+    hoa = remove_dollar_and_comma(res_dct.get("HOA fee: ", "0"))
 
-        if hoa is None:
-            hoa = 0
+    if hoa is None:
+        hoa = 0
 
-        return hoa
-    except Exception as e:
-        print(e)
+    return hoa
+
+
+    # try:
+    #     for i in range(0, len(raw_detail_json_data)):
+    #         item = str(raw_detail_json_data[i])
+    #         if item == "HOA fee: ":
+    #             hoa_dollar = str(raw_detail_json_data[i + 1])
+    #             hoa = remove_dollar_and_comma(hoa_dollar)
+    #             break
+    #
+    #     if hoa is None:
+    #         hoa = 0
+    #
+    #     return hoa
+    # except Exception as e:
+    #     print(e)
 
 
 def get_data_from_json(raw_json_data):
@@ -129,7 +141,8 @@ def get_data_from_json(raw_json_data):
             city = property_info.get('city')
             state = property_info.get('state')
             postal_code = property_info.get('zipcode')
-            zestimate = int(str(property_info.get('zestimate')).replace('+', '')) if property_info.get('zestimate') is not None else '0'
+            zestimate_unrefined = property_info.get('zestimate') if property_info.get('zestimate') is not None else '0'
+            zestimate = int(str(zestimate_unrefined).replace('+', ''))
             rentZestimate = property_info.get('rentZestimate')
             price = remove_dollar_and_comma(properties.get('price')) if properties.get('price') is not None else '0'
             yearBuilt = property_info.get('yearBuilt')
@@ -139,7 +152,11 @@ def get_data_from_json(raw_json_data):
             area = properties.get('area')
             info = f'{bedrooms} beds, {bathrooms} baths'
             property_url = properties.get('detailUrl')
-            hoa = get_hoa(property_url)
+            unrefined_hoa = get_hoa(property_url) #TODO: Make this function run faster this is slowing down the overall program.
+            hoa = unrefined_hoa if unrefined_hoa is not None and unrefined_hoa != "None" else '0'
+
+
+
             title = properties.get('statusText')
             # TODO days_on_market = properties.get('variableData').get('text')
 
