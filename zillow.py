@@ -36,6 +36,14 @@ def create_url(zipcode, filter):
     print(url)
     return url
 
+def create_detail_url(zipcode, filter):
+    # Creating Zillow URL based on the filter.
+
+    url = "https://www.zillow.com/homes/for_sale/{0}_rb/?fromHomePage=true&shouldFireSellPageImplicitClaimGA=false&fromHomePageTab=buy".format(zipcode)
+
+    print(url)
+    return url
+
 
 def save_to_file(response):
 	with io.open("response.html", "w", encoding="utf-8") as fp:
@@ -46,7 +54,7 @@ def write_data_to_csv(data, count):
     # saving scraped data to csv.
 
     with open("Data/properties-%s.csv" % (city), 'ab') as csvfile:
-        fieldnames = ['title', 'city', 'state', 'postal_code', 'zestimate', 'rentZestimate', 'price', 'yearBuilt', 'area', 'daysOnZillow', 'facts and features', 'real estate provider', 'url', 'P2R']
+        fieldnames = ['title', 'city', 'state', 'postal_code', 'zestimate', 'rentZestimate', 'HOA', 'price', 'yearBuilt', 'area', 'daysOnZillow', 'facts and features', 'url', 'P2R']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if count==0:
             writer.writeheader()
@@ -54,12 +62,13 @@ def write_data_to_csv(data, count):
             writer.writerow(row)
 
 
-def get_response(url):
+def get_response(url, is_hoa=False):
     # Getting response from zillow.com.
 
     for i in range(5):
         response = requests.get(url, headers=get_headers())
-        print("status code received:", response.status_code)
+        if is_hoa is False:
+            print("status code received:", response.status_code)
         if response.status_code != 200:
             # saving response to file for debugging purpose.
             save_to_file(response)
@@ -72,14 +81,40 @@ def get_response(url):
 def remove_dollar_and_comma(price):
     price = price.replace(',', '')
     price = price.replace('$', '')
+    price = price.replace('/mo', '')
+    price = price.replace('+', '')
     return price
+
+def get_hoa(property_url):
+    is_hoa = True
+    print("now retrieving:", property_url)
+    response_detail = get_response(property_url, is_hoa)
+    detail_parser = html.fromstring(response_detail.text)
+    # raw_detail_json_data = detail_parser.xpath('//script[@id="hdpApolloPreloadedData"]//text()')
+    raw_detail_json_data = detail_parser.xpath('//span[@class="Text-aiai24-0 IJYzV"]//text()')
+
+    hoa = 0
+    try:
+        for i in range(0, len(raw_detail_json_data)):
+            item = str(raw_detail_json_data[i])
+            if item == "HOA fee: ":
+                hoa_dollar = str(raw_detail_json_data[i + 1])
+                hoa = remove_dollar_and_comma(hoa_dollar)
+                break
+
+        if hoa is None:
+            hoa = 0
+
+        return hoa
+    except Exception as e:
+        print(e)
+
 
 def get_data_from_json(raw_json_data):
     # getting data from json (type 2 of their A/B testing page)
 
     cleaned_data = clean(raw_json_data).replace('<!--', "").replace("-->", "")
     properties_list = []
-
 
     try:
         json_data = json.loads(cleaned_data)
@@ -94,7 +129,7 @@ def get_data_from_json(raw_json_data):
             city = property_info.get('city')
             state = property_info.get('state')
             postal_code = property_info.get('zipcode')
-            zestimate = property_info.get('zestimate')
+            zestimate = int(str(property_info.get('zestimate')).replace('+', '')) if property_info.get('zestimate') is not None else '0'
             rentZestimate = property_info.get('rentZestimate')
             price = remove_dollar_and_comma(properties.get('price')) if properties.get('price') is not None else '0'
             yearBuilt = property_info.get('yearBuilt')
@@ -103,29 +138,31 @@ def get_data_from_json(raw_json_data):
             bathrooms = properties.get('baths')
             area = properties.get('area')
             info = f'{bedrooms} beds, {bathrooms} baths'
-            broker = properties.get('brokerName')
             property_url = properties.get('detailUrl')
+            hoa = get_hoa(property_url)
             title = properties.get('statusText')
             # TODO days_on_market = properties.get('variableData').get('text')
 
             if zestimate not in [None, ''] and rentZestimate not in [None, '']:
-                price_to_rent =str(int(zestimate)/(12*int(rentZestimate)))
+                price_to_rent =str(int(zestimate)/(12*int(rentZestimate-int(hoa))))
             elif price not in [None, ''] and rentZestimate not in [None, '']:
-                price_to_rent = str(int(price)/(12*int(rentZestimate)))
+                price_to_rent = str(int(price)/(12*int(rentZestimate-int(hoa))))
             else:
                 price_to_rent = "0"
+
+
 
             data = {'city': city,
                     'state': state,
                     'postal_code': postal_code,
                     'zestimate': zestimate,
                     'rentZestimate' : rentZestimate,
+                    'HOA' : hoa,
                     'price': price,
                     'yearBuilt' : yearBuilt,
                     'area': area,
                     'daysOnZillow' : daysOnZillow,
                     'facts and features': info,
-                    'real estate provider': broker,
                     'url': property_url,
                     'title': title,
                     'P2R': price_to_rent}
@@ -199,19 +236,19 @@ def parse(zipcode, filter=None):
 if __name__ == "__main__":
     # Reading arguments
 
-    argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    argparser.add_argument('city', help='')
-    argparser.add_argument('state', help='')
-    argparser.add_argument('sort', nargs='?', help='', default='Homes For You')
-    args = argparser.parse_args()
-    city = args.city
-    state = args.state
-    sort = args.sort
+    # argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    # argparser.add_argument('city', help='')
+    # argparser.add_argument('state', help='')
+    # argparser.add_argument('sort', nargs='?', help='', default='Homes For You')
+    # args = argparser.parse_args()
+    # city = args.city
+    # state = args.state
+    # sort = args.sort
 
     # uncomment to debug
-    # city = "fairfax"
-    # state = "VA"
-    # sort = ""
+    city = "denver"
+    state = "colorado"
+    sort = ""
 
 
 

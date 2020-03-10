@@ -37,6 +37,28 @@ def get_zipcodes_by_median_income(lower, upper):
 def get_zip_of_rich_by_city_state(city, state):
     lat, lng = get_lat_lng_of_city_state(city, state)
     zips = get_zipcode_of_richest_near_city(lat, lng)
-    print(zips)
+    return zips
 
-get_zip_of_rich_by_city_state('fairfax', 'va')
+# Currently set to get top 20 with 100 mile radius
+def get_zipcode_of_richest_near_city(lat, lng):
+    search = SearchEngine(simple_zipcode=True)
+    zip=[]
+    radius = 100
+    res = search.query(
+        lat=lat,
+        lng=lng,
+        radius=radius,
+        sort_by=Zipcode.median_household_income,
+        ascending=False,
+        returns=100,
+    )
+    print(res)
+    for i in res:
+        zip.append(str(i.median_household_income) + " " + i.major_city)
+
+    return zip
+
+
+
+x = get_zip_of_rich_by_city_state('fairfax', 'va')
+print(x)

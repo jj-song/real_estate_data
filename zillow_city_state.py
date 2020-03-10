@@ -46,7 +46,7 @@ def write_data_to_csv(data, count):
     # saving scraped data to csv.
 
     with open("Data/properties-%s.csv" % (city), 'ab') as csvfile:
-        fieldnames = ['title', 'city', 'state', 'postal_code', 'zestimate', 'rentZestimate', 'price', 'yearBuilt', 'area', 'daysOnZillow', 'facts and features', 'real estate provider', 'url', 'P2R']
+        fieldnames = ['title', 'city', 'state', 'postal_code', 'zestimate', 'rentZestimate', 'price', 'yearBuilt', 'area', 'daysOnZillow', 'facts and features', 'url', 'P2R']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         if count==0:
             writer.writeheader()
@@ -125,7 +125,6 @@ def get_data_from_json(raw_json_data):
                     'area': area,
                     'daysOnZillow' : daysOnZillow,
                     'facts and features': info,
-                    'real estate provider': broker,
                     'url': property_url,
                     'title': title,
                     'P2R': price_to_rent}
