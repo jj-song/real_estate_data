@@ -1,0 +1,21 @@
+add HOA value to rental price
+hoa weights for importance
+cashflow = mortgage - rent
+school rating
+
+potential deals:
+https://www.zillow.com/homedetails/10241-Rose-Meadow-Ln-Charlotte-NC-28277/2132839542_zpid/
+
+** https://www.zillow.com/homedetails/17146-Red-Feather-Dr-17146-Charlotte-NC-28277/2082372902_zpid/
+
+https://www.zillow.com/homedetails/3093-Point-Clear-Dr-Tega-Cay-SC-29708/11875332_zpid/?
+
+
+Next Step:
+- input is by State
+- put a range of household income we want
+- return all cities in a state with household income between x and y
+- get all zipcodes for those cities
+- run it through the existing function
+
+- get the average rent

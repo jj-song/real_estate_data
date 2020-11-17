@@ -28,14 +28,14 @@ def get_lat_lng_of_city_state(city, state):
 def get_zipcode_of_richest_near_city(lat, lng):
     search = SearchEngine(simple_zipcode=True)
     zip=[]
-    radius = 50
+    radius = 25
     res = search.query(
         lat=lat,
         lng=lng,
         radius=radius,
         sort_by=Zipcode.median_household_income,
-        ascending=False,
-        returns=15
+        ascending=True,
+        returns=25
     )
     for i in res:
         zip.append(i.zipcode)
