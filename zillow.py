@@ -145,7 +145,7 @@ def get_data_from_json(raw_json_data):
 
     try:
         json_data = json.loads(cleaned_data)
-        search_results = json_data.get('searchResults').get('listResults', [])
+        search_results = json_data.get('cat1').get('searchResults').get('relaxedResults', [])
 
         with open('sample_json.txt', 'w') as f:
             f.write(str(json_data))
@@ -167,8 +167,8 @@ def get_data_from_json(raw_json_data):
             area = properties.get('area')
             info = f'{bedrooms} beds, {bathrooms} baths'
             property_url = properties.get('detailUrl')
-            unrefined_hoa = get_hoa(property_url) #TODO: Make this function run faster this is slowing down the overall program.
-            hoa = unrefined_hoa if unrefined_hoa is not None and unrefined_hoa != "None" else '0'
+            #unrefined_hoa = get_hoa(property_url) #TODO: Make this function run faster this is slowing down the overall program.
+            #hoa = unrefined_hoa if unrefined_hoa is not None and unrefined_hoa != "None" else '0'
 
 
 
@@ -176,9 +176,9 @@ def get_data_from_json(raw_json_data):
             # TODO days_on_market = properties.get('variableData').get('text')
 
             if zestimate not in [None, '', 0] and rentZestimate not in [None, '', 0]:
-                price_to_rent =str(int(zestimate)/(12*int(rentZestimate-int(hoa))))
+                price_to_rent =str(int(zestimate)/(12*int(rentZestimate)))
             elif price not in [None, ''] and rentZestimate not in [None, '']:
-                price_to_rent = str(int(price)/(12*int(rentZestimate-int(hoa))))
+                price_to_rent = str(int(price)/(12*int(rentZestimate)))
             else:
                 price_to_rent = "0"
 
@@ -189,7 +189,7 @@ def get_data_from_json(raw_json_data):
                     'postal_code': postal_code,
                     'zestimate': zestimate,
                     'rentZestimate' : rentZestimate,
-                    'HOA' : hoa,
+                    #'HOA' : hoa,
                     'price': price,
                     'yearBuilt' : yearBuilt,
                     'area': area,
@@ -225,7 +225,8 @@ def parse(zipcode, filter=None):
         print("parsing from json data")
         # identified as type 2 page
         raw_json_data = parser.xpath('//script[@data-zrr-shared-data-key="mobileSearchPageStore"]//text()')
-        return get_data_from_json(raw_json_data)
+        properties_list = get_data_from_json(raw_json_data)
+        return properties_list
 
     print("parsing from html page")
     properties_list = []
@@ -268,19 +269,19 @@ def parse(zipcode, filter=None):
 if __name__ == "__main__":
     # Reading arguments
 
-    argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    argparser.add_argument('city', help='')
-    argparser.add_argument('state', help='')
-    argparser.add_argument('sort', nargs='?', help='', default='Homes For You')
-    args = argparser.parse_args()
-    city = args.city
-    state = args.state
-    sort = args.sort
+    # argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    # argparser.add_argument('city', help='')
+    # argparser.add_argument('state', help='')
+    # argparser.add_argument('sort', nargs='?', help='', default='Homes For You')
+    # args = argparser.parse_args()
+    # city = args.city
+    # state = args.state
+    # sort = args.sort
 
     # uncomment to debug
-    # city = "denver"
-    # state = "colorado"
-    # sort = ""
+    city = "charlotte"
+    state = "north carolina"
+    sort = ""
 
 
 

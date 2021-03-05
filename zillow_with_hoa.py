@@ -167,8 +167,8 @@ def get_data_from_json(raw_json_data):
             area = properties.get('area')
             info = f'{bedrooms} beds, {bathrooms} baths'
             property_url = properties.get('detailUrl')
-            #unrefined_hoa = get_hoa(property_url) #TODO: Make this function run faster this is slowing down the overall program.
-            #hoa = unrefined_hoa if unrefined_hoa is not None and unrefined_hoa != "None" else '0'
+            unrefined_hoa = get_hoa(property_url) #TODO: Make this function run faster this is slowing down the overall program.
+            hoa = unrefined_hoa if unrefined_hoa is not None and unrefined_hoa != "None" else '0'
 
 
 
@@ -176,9 +176,9 @@ def get_data_from_json(raw_json_data):
             # TODO days_on_market = properties.get('variableData').get('text')
 
             if zestimate not in [None, '', 0] and rentZestimate not in [None, '', 0]:
-                price_to_rent =str(int(zestimate)/(12*int(rentZestimate)))
+                price_to_rent =str(int(zestimate)/(12*int(rentZestimate-int(hoa))))
             elif price not in [None, ''] and rentZestimate not in [None, '']:
-                price_to_rent = str(int(price)/(12*int(rentZestimate)))
+                price_to_rent = str(int(price)/(12*int(rentZestimate-int(hoa))))
             else:
                 price_to_rent = "0"
 
@@ -189,7 +189,7 @@ def get_data_from_json(raw_json_data):
                     'postal_code': postal_code,
                     'zestimate': zestimate,
                     'rentZestimate' : rentZestimate,
-                    #'HOA' : hoa,
+                    'HOA' : hoa,
                     'price': price,
                     'yearBuilt' : yearBuilt,
                     'area': area,
