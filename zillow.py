@@ -267,21 +267,20 @@ def parse(zipcode, filter=None):
 
 
 if __name__ == "__main__":
-    # Reading arguments
-
-    # argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
-    # argparser.add_argument('city', help='')
-    # argparser.add_argument('state', help='')
-    # argparser.add_argument('sort', nargs='?', help='', default='Homes For You')
-    # args = argparser.parse_args()
-    # city = args.city
-    # state = args.state
-    # sort = args.sort
+    # Reading arguments (comment out to debug)
+    argparser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    argparser.add_argument('city', help='')
+    argparser.add_argument('state', help='')
+    argparser.add_argument('sort', nargs='?', help='', default='Homes For You')
+    args = argparser.parse_args()
+    city = args.city
+    state = args.state
+    sort = args.sort
 
     # uncomment to debug
-    city = "charlotte"
-    state = "north carolina"
-    sort = ""
+    # city = "charlotte"
+    # state = "north carolina"
+    # sort = ""
 
 
 
