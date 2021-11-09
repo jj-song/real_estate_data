@@ -16,7 +16,7 @@ packaging==19.2
 pandas==0.25.3
 pathlib-mate==0.0.15
 pluggy==0.13.1
-py==1.8.0
+py==1.10.0
 pycodestyle==2.5.0
 pyparsing==2.4.5
 pytest==5.3.1
